@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <vector>
+#include <algorithm>
 #include <string>
 #include <fstream>
 #include <stdexcept>
@@ -18,15 +19,21 @@
 using namespace std;
 
 class Usuario {
-public:
-    char nombre[50];
-
-    Usuario() {}
-    Usuario(string n) {
-        strncpy(nombre, n.c_str(), sizeof(nombre) - 1);
-        nombre[sizeof(nombre) - 1] = '\0';
-    }
+    public:
+        char nombre[50];
+        char ip[INET_ADDRSTRLEN];
+        int socketUsuario;  // ✅ Agregar esta línea
+    
+        Usuario() {}
+        Usuario(string n, string i, int s) {
+            strncpy(nombre, n.c_str(), sizeof(nombre) - 1);
+            nombre[sizeof(nombre) - 1] = '\0';
+            strncpy(ip, i.c_str(), sizeof(ip) - 1);
+            ip[sizeof(ip) - 1] = '\0';
+            socketUsuario = s;
+        }
 };
+    
 
 struct MemoriaCompartida {
     Usuario usuarios[10];
@@ -100,93 +107,122 @@ public:
         socketMaximo = socketServidor;
     }
 
-    void registrarUsuario(string nombre) {
+    void registrarUsuario(string nombre, int socketUsuario) {
         if (memoria->totalUsuarios < 10) {
-            memoria->usuarios[memoria->totalUsuarios] = Usuario(nombre);
+            memoria->usuarios[memoria->totalUsuarios] = Usuario(nombre, "127.0.0.1", socketUsuario);
             memoria->totalUsuarios++;
-            cout << "✅ Usuario registrado: " << nombre << endl;
+            cout << "✅ Usuario registrado: " << nombre << " (Socket FD: " << socketUsuario << ")\n";
         } else {
             cerr << "❌ Máximo de usuarios alcanzado.\n";
         }
     }
-
+    
     void manejarConexiones() {
         fd_set lecturaSockets;
-
+    
         while (true) {
             lecturaSockets = conjuntoSockets;  // Copiar la lista de sockets
             int actividad = select(socketMaximo + 1, &lecturaSockets, nullptr, nullptr, nullptr);
-
+    
             if (actividad < 0) {
                 cerr << "Error en select()" << endl;
                 continue;
             }
-
+    
             // 🔹 Verificar si hay una nueva conexión entrante
             if (FD_ISSET(socketServidor, &lecturaSockets)) {
                 sockaddr_in direccionCliente{};
                 socklen_t tamanoCliente = sizeof(direccionCliente);
                 int nuevoSocket = accept(socketServidor, (struct sockaddr*)&direccionCliente, &tamanoCliente);
-
+    
                 if (nuevoSocket < 0) {
                     cerr << "Error al aceptar conexión." << endl;
                     continue;
                 }
-
+    
                 char buffer[50] = {0};
                 recv(nuevoSocket, buffer, 50, 0);
                 string nombreUsuario(buffer);
                 nombreUsuario.erase(nombreUsuario.find_last_not_of(" \n\r\t") + 1);
-
-                registrarUsuario(nombreUsuario);
-
+    
+                registrarUsuario(nombreUsuario, nuevoSocket);
+    
                 // 🔹 Agregar el nuevo socket al conjunto
                 FD_SET(nuevoSocket, &conjuntoSockets);
                 if (nuevoSocket > socketMaximo) {
                     socketMaximo = nuevoSocket;
                 }
-
-                cout << "👤 Nuevo usuario conectado: " << nombreUsuario << " (Socket FD: " << nuevoSocket << ")\n";
+    
+                cout << "👤 Nuevo usuario conectado: " << nombreUsuario 
+                     << " (Socket FD: " << nuevoSocket << ")\n";
             }
-
+    
             // 🔹 Verificar si hay mensajes de usuarios
             for (int i = 0; i <= socketMaximo; i++) {
                 if (FD_ISSET(i, &lecturaSockets) && i != socketServidor) {
                     char buffer[1024] = {0};
                     int bytesRecibidos = recv(i, buffer, 1024, 0);
-
+    
                     if (bytesRecibidos <= 0) {
                         cout << "❌ Usuario desconectado (Socket FD: " << i << ")\n";
                         close(i);
                         FD_CLR(i, &conjuntoSockets);
                         continue;
                     }
-
+    
                     string mensaje(buffer);
                     size_t pos = mensaje.find(": ");
                     if (pos == string::npos) {
                         cerr << "⚠ Formato de mensaje incorrecto." << endl;
                         continue;
                     }
-
+    
                     string destinatario = mensaje.substr(0, pos);
                     string contenido = mensaje.substr(pos + 2);
-
+    
+                    // 🔹 Determinar quién envió el mensaje
+                    string remitente = "[Desconocido]";
+                    for (int k = 0; k < memoria->totalUsuarios; k++) {
+                        if (memoria->usuarios[k].socketUsuario == i) {
+                            remitente = string(memoria->usuarios[k].nombre);
+                            break;
+                        }
+                    }
+    
                     cout << "\n📢 Mensaje recibido:\n";
+                    cout << "Remitente: " << remitente << "\n";
                     cout << "Destinatario: " << destinatario << "\n";
                     cout << "Contenido: " << contenido << "\n";
+    
+                    // 🔹 Buscar el destinatario en la memoria compartida
+                    bool encontrado = false;
+                    for (int j = 0; j < memoria->totalUsuarios; j++) {
+                        if (strcmp(memoria->usuarios[j].nombre, destinatario.c_str()) == 0) {
+                            encontrado = true;
 
-                    // 🔹 Enviar mensaje a todos los clientes conectados
-                    for (int j = 0; j <= socketMaximo; j++) {
-                        if (FD_ISSET(j, &conjuntoSockets) && j != socketServidor && j != i) {
-                            send(j, mensaje.c_str(), mensaje.size(), 0);
+                            replace(contenido.begin(), contenido.end(), '\n', ' ');
+                            replace(contenido.begin(), contenido.end(), '\r', ' ');
+                            replace(remitente.begin(), remitente.end(), '\n', ' ');
+                            replace(remitente.begin(), remitente.end(), '\r', ' ');
+                            
+                            // Construir mensaje correctamente
+                            string mensajeFinal = "📨 " + contenido + "(" + remitente + ")\n\r";
+    
+                            // Enviar mensaje solo al destinatario
+                            send(memoria->usuarios[j].socketUsuario, mensajeFinal.c_str(), mensajeFinal.size(), 0);
+                            cout << "📨 Mensaje enviado de " << remitente << " a " << destinatario << "\n";
+                            break;
                         }
+                    }
+    
+                    if (!encontrado) {
+                        cerr << "⚠ Usuario destinatario no encontrado: '" << destinatario << "'" << endl;
                     }
                 }
             }
         }
     }
-
+    
     ~Servidor() {
         close(socketServidor);
     }
