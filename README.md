@@ -12,7 +12,7 @@ git checkout v1
 ```
 
 ### Compilación
-Ejecuta el siguiente comando para compilar el programa:
+Ejecute el siguiente comando para compilar el programa:
 
 ```bash
 g++ -o servidor servidor_mensajeria.cpp
