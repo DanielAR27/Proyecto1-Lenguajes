@@ -60,4 +60,4 @@ ss -tulnp | grep 5000
 Si necesita liberar el puerto, puede reiniciar el servidor o cerrar las conexiones activas.
 
 Autor: Pani
-Última actualización: *`$(date +"%Y-%m-%d")`*
+Última actualización: *`10/3/2025`*
