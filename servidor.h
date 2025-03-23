@@ -91,7 +91,7 @@ public:
         direccionServidor.sin_addr.s_addr = INADDR_ANY;
         direccionServidor.sin_port = htons(puerto);
 
-        if (bind(socketServidor, (struct sockaddr*)&direccionServidor, sizeof(direccionServidor)) < 0) {
+        if (::bind(socketServidor, (struct sockaddr*)&direccionServidor, sizeof(direccionServidor)) < 0) {
             throw runtime_error("Error al enlazar el socket.");
         }
 
