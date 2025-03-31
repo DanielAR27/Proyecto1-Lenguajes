@@ -18,11 +18,20 @@
 
 using namespace std;
 
+// Códigos de color ANSI
+#define RESET   "\033[0m"
+#define RED     "\033[31m"
+#define GREEN   "\033[32m"
+#define YELLOW  "\033[33m"
+#define BLUE    "\033[34m"
+#define CYAN    "\033[36m"
+#define BOLD    "\033[1m"
+
 class Usuario {
     public:
         char nombre[50];
         char ip[INET_ADDRSTRLEN];
-        int socketUsuario;  // ✅ Agregar esta línea
+        int socketUsuario;
     
         Usuario() {}
         Usuario(string n, string i, int s) {
@@ -139,6 +148,10 @@ public:
                     cerr << "Error al aceptar conexión." << endl;
                     continue;
                 }
+
+                const char* mensajeBienvenida = "Por favor ingrese su nombre de usuario:\n";
+                send(nuevoSocket, mensajeBienvenida, strlen(mensajeBienvenida), 0);
+
     
                 char buffer[50] = {0};
                 recv(nuevoSocket, buffer, 50, 0);
@@ -164,11 +177,22 @@ public:
                     int bytesRecibidos = recv(i, buffer, 1024, 0);
     
                     if (bytesRecibidos <= 0) {
-                        cout << "❌ Usuario desconectado (Socket FD: " << i << ")\n";
+                        string usuarioDesconectado = "[Desconocido]";
+                        for (int k = 0; k < memoria->totalUsuarios; k++) {
+                            if (memoria->usuarios[k].socketUsuario == i) {
+                                usuarioDesconectado = string(memoria->usuarios[k].nombre);
+                                break;
+                            }
+                        }
+
+                        cerr << RED << "❌ Usuario desconectado: " << usuarioDesconectado 
+                            << " (Socket FD: " << i << ")" << RESET << "\n";
+
                         close(i);
                         FD_CLR(i, &conjuntoSockets);
                         continue;
                     }
+
     
                     string mensaje(buffer);
                     size_t pos = mensaje.find(": ");
@@ -189,11 +213,11 @@ public:
                         }
                     }
     
-                    cout << "\n📢 Mensaje recibido:\n";
+                    cout << GREEN << "\n📢 Mensaje recibido:\n";
                     cout << "Remitente: " << remitente << "\n";
                     cout << "Destinatario: " << destinatario << "\n";
-                    cout << "Contenido: " << contenido << "\n";
-    
+                    cout << "Contenido: " << contenido << RESET << "\n";
+
                     // 🔹 Buscar el destinatario en la memoria compartida
                     bool encontrado = false;
                     for (int j = 0; j < memoria->totalUsuarios; j++) {
@@ -206,17 +230,18 @@ public:
                             replace(remitente.begin(), remitente.end(), '\r', ' ');
                             
                             // Construir mensaje correctamente
-                            string mensajeFinal = "📨 " + contenido + "(" + remitente + ")\n\r";
+                            string mensajeFinal = string(GREEN) + "📨 " + contenido + " (" + remitente + ")" + RESET + "\n\r";
+
     
                             // Enviar mensaje solo al destinatario
                             send(memoria->usuarios[j].socketUsuario, mensajeFinal.c_str(), mensajeFinal.size(), 0);
-                            cout << "📨 Mensaje enviado de " << remitente << " a " << destinatario << "\n";
+                            cout << BLUE << "📨 Mensaje enviado de " << remitente << " a " << destinatario << RESET << "\n";
                             break;
                         }
                     }
     
                     if (!encontrado) {
-                        cerr << "⚠ Usuario destinatario no encontrado: '" << destinatario << "'" << endl;
+                        cerr << YELLOW << "⚠ Usuario destinatario no encontrado: '" << destinatario << "'" << RESET << endl;
                     }
                 }
             }
