@@ -4,23 +4,33 @@
 
 using namespace std;
 
-// 🔹 Manejar señales para limpiar procesos hijos
-void manejarSenal(int signo) {
-    while (waitpid(-1, nullptr, WNOHANG) > 0);
+void manejarSenal(int signo)
+{
+    while (waitpid(-1, nullptr, WNOHANG) > 0)
+        ;
 }
 
-int main() {
+int main()
+{
     signal(SIGCHLD, manejarSenal);
+    signal(SIGINT, [](int)
+           { exit(0); }); // Manejar Ctrl+C
 
-    try {
+    try
+    {
+        cout << "🔹 Iniciando servidor de mensajería..." << endl;
         Servidor servidor("config.txt");
 
-        cout << "Esperando conexiones de clientes y mensajes..." << endl;
-        
-        servidor.manejarConexiones();
+        cout << "🔄 Esperando conexiones de clientes..." << endl;
+        cout << "📌 Presiona Ctrl+C para detener el servidor\n"
+             << endl;
 
-    } catch (const exception& e) {
-        cerr << "Error: " << e.what() << endl;
+        servidor.manejarConexiones();
+    }
+    catch (const exception &e)
+    {
+        cerr << RED << "❌ Error crítico: " << e.what() << RESET << endl;
+        return 1;
     }
 
     return 0;

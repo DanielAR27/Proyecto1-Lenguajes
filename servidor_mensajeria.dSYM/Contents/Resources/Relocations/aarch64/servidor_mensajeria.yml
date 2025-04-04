@@ -1,0 +1,5 @@
+---
+triple:          'arm64-apple-darwin'
+binary-path:     '/Users/dan/Documents/GitHub/I-2025/Proyecto1-Lenguajes/servidor_mensajeria'
+relocations:     []
+...
