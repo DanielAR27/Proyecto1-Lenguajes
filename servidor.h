@@ -20,14 +20,38 @@
 
 using namespace std;
 
-// Códigos de color ANSI
-#define RESET "\033[0m"
-#define RED "\033[31m"
-#define GREEN "\033[32m"
-#define YELLOW "\033[33m"
-#define BLUE "\033[34m"
-#define CYAN "\033[36m"
-#define BOLD "\033[1m"
+// Códigos de color ANSI consistentes
+const string COLOR_RESET = "\033[0m";
+const string COLOR_ROJO = "\033[1;31m";
+const string COLOR_VERDE = "\033[1;32m";
+const string COLOR_AMARILLO = "\033[1;33m";
+const string COLOR_AZUL = "\033[1;34m";
+const string COLOR_MAGENTA = "\033[1;35m";
+const string COLOR_CYAN = "\033[1;36m";
+const string COLOR_GRIS = "\033[1;90m";
+const string COLOR_NEGRITA = "\033[1m";
+const string COLOR_COMANDO = "\033[1;93m"; // Color específico para comandos (amarillo brillante)
+
+// Función para mostrar el ASCII Art del servidor
+void mostrar_ascii_servidor()
+{
+    const char *ascii[] = {
+        " ░▒▓███████▓▒░▒▓████████▓▒░▒▓███████▓▒░░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░▒▓███████▓▒░ ░▒▓██████▓▒░░▒▓███████▓▒░  ",
+        "░▒▓█▓▒░      ░▒▓█▓▒░      ░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░ ",
+        "░▒▓█▓▒░      ░▒▓█▓▒░      ░▒▓█▓▒░░▒▓█▓▒░░▒▓█▓▒▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░ ",
+        " ░▒▓██████▓▒░░▒▓██████▓▒░ ░▒▓███████▓▒░ ░▒▓█▓▒▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓███████▓▒░  ",
+        "       ░▒▓█▓▒░▒▓█▓▒░      ░▒▓█▓▒░░▒▓█▓▒░ ░▒▓█▓▓█▓▒░ ░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░ ",
+        "       ░▒▓█▓▒░▒▓█▓▒░      ░▒▓█▓▒░░▒▓█▓▒░ ░▒▓█▓▓█▓▒░ ░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░ ",
+        "░▒▓███████▓▒░░▒▓████████▓▒░▒▓█▓▒░░▒▓█▓▒░  ░▒▓██▓▒░  ░▒▓█▓▒░▒▓███████▓▒░ ░▒▓██████▓▒░░▒▓█▓▒░░▒▓█▓▒░ ",
+    };
+
+    cout << COLOR_CYAN;
+    for (const auto &linea : ascii)
+    {
+        cout << linea << endl;
+    }
+    cout << COLOR_RESET << endl;
+}
 
 class Usuario
 {
@@ -134,7 +158,7 @@ public:
             throw runtime_error("Error al escuchar conexiones.");
         }
 
-        cout << "✅ Servidor iniciado en el puerto " << puerto << endl;
+        cout << COLOR_VERDE << "[OK] Servidor iniciado en el puerto " << puerto << COLOR_RESET << endl;
 
         FD_ZERO(&conjuntoSockets);
         FD_SET(socketServidor, &conjuntoSockets);
@@ -146,7 +170,7 @@ public:
         // Validar nombre de usuario
         if (nombre.empty() || nombre.find_first_of(" \t\n\r") != string::npos)
         {
-            string mensajeError = "Nombre de usuario inválido. No puede contener espacios.\n";
+            string mensajeError = COLOR_ROJO + "[ERROR] Nombre de usuario inválido. No puede contener espacios.\n" + COLOR_RESET;
             send(socketUsuario, mensajeError.c_str(), mensajeError.size(), 0);
             close(socketUsuario);
             return;
@@ -154,14 +178,14 @@ public:
 
         if (memoria->usuarios.find(nombre) != memoria->usuarios.end())
         {
-            string mensajeError = "Nombre de usuario ya en uso. Por favor elija otro.\n";
+            string mensajeError = COLOR_ROJO + "[ERROR] Nombre de usuario ya en uso. Por favor elija otro.\n" + COLOR_RESET;
             send(socketUsuario, mensajeError.c_str(), mensajeError.size(), 0);
             close(socketUsuario);
             return;
         }
 
         memoria->usuarios[nombre] = Usuario(nombre, ip, socketUsuario);
-        cout << "✅ Usuario registrado: " << nombre << " (" << ip << ")" << " (Socket FD: " << socketUsuario << ")\n";
+        cout << COLOR_VERDE << "[OK] Usuario registrado: " << nombre << " (" << ip << ")" << " (Socket FD: " << socketUsuario << ")" << COLOR_RESET << "\n";
 
         // Enviar mensajes pendientes si los hay
         while (!memoria->mensajesPendientes.empty())
@@ -169,7 +193,7 @@ public:
             auto mensaje = memoria->mensajesPendientes.front();
             if (mensaje.first == nombre)
             {
-                string mensajeFinal = string(GREEN) + "📨 [Pendiente] " + mensaje.second + RESET + "\n";
+                string mensajeFinal = COLOR_VERDE + "[PENDIENTE] " + mensaje.second + COLOR_RESET + "\n";
                 send(socketUsuario, mensajeFinal.c_str(), mensajeFinal.size(), 0);
                 memoria->mensajesPendientes.pop();
             }
@@ -179,12 +203,18 @@ public:
             }
         }
 
-        // Enviar lista de comandos
-        string mensajeBienvenida = string(CYAN) + "\nBienvenido " + nombre + "!\n" +
-                                   "Comandos disponibles:\n" +
-                                   "/listar - Ver usuarios conectados\n" +
-                                   "/salir - Desconectarse\n" +
-                                   "/msg <usuario> <mensaje> - Enviar mensaje privado\n" + RESET;
+        // Enviar lista de comandos con estilo mejorado
+        string mensajeBienvenida = COLOR_MAGENTA + "\n════════════════════════════════════════════════════════════════════\n" +
+                                   COLOR_VERDE + "                     - Bienvenido " + nombre + "-" +
+                                   COLOR_MAGENTA + "\n════════════════════════════════════════════════════════════════════\n\n" + COLOR_RESET +
+
+                                   COLOR_AZUL + "Comandos disponibles:\n" + COLOR_RESET +
+                                   COLOR_CYAN + "/broadcast [mensaje]" + COLOR_RESET + "     - Enviar mensaje a todos los usuarios\n" +
+                                   COLOR_CYAN + "/listar" + COLOR_RESET + "                  - Ver usuarios conectados\n" +
+                                   COLOR_CYAN + "/msg [usuario] [mensaje]" + COLOR_RESET + " - Enviar mensaje privado\n" +
+                                   COLOR_CYAN + "/ayuda" + COLOR_RESET + "                   - Mostrar esta ayuda\n" +
+                                   COLOR_CYAN + "/salir" + COLOR_RESET + "                   - Desconectarse\n" + COLOR_RESET;
+
         send(socketUsuario, mensajeBienvenida.c_str(), mensajeBienvenida.size(), 0);
     }
 
@@ -201,7 +231,7 @@ public:
 
             if (actividad < 0 && errno != EINTR)
             {
-                cerr << "Error en select(): " << strerror(errno) << endl;
+                cerr << COLOR_ROJO << "[ERROR] Error en select(): " << strerror(errno) << COLOR_RESET << endl;
                 continue;
             }
 
@@ -221,14 +251,14 @@ public:
 
                 if (nuevoSocket < 0)
                 {
-                    cerr << "Error al aceptar conexión: " << strerror(errno) << endl;
+                    cerr << COLOR_ROJO << "[ERROR] Error al aceptar conexión: " << strerror(errno) << COLOR_RESET << endl;
                     continue;
                 }
 
                 char ipCliente[INET_ADDRSTRLEN];
                 inet_ntop(AF_INET, &direccionCliente.sin_addr, ipCliente, INET_ADDRSTRLEN);
 
-                const char *mensajeBienvenida = "Por favor ingrese su nombre de usuario (sin espacios):\n";
+                const char *mensajeBienvenida = "> Por favor ingrese su nombre de usuario (sin espacios): ";
                 send(nuevoSocket, mensajeBienvenida, strlen(mensajeBienvenida), 0);
 
                 FD_SET(nuevoSocket, &conjuntoSockets);
@@ -293,6 +323,35 @@ public:
         }
     }
 
+    // Función auxiliar para formatear mensajes de manera consistente
+    string formatearMensaje(const string &tipo, const string &contenido, const string &color = COLOR_RESET)
+    {
+        string mensaje;
+
+        if (tipo == "ERROR")
+        {
+            mensaje = COLOR_ROJO + "[" + tipo + "] " + contenido + "\n" + COLOR_RESET;
+        }
+        else if (tipo == "ENVIADO")
+        {
+            mensaje = COLOR_AMARILLO + "[" + tipo + "] " + contenido + "\n" + COLOR_RESET;
+        }
+        else if (tipo == "INFO")
+        {
+            mensaje = COLOR_AZUL + "[" + tipo + "] " + contenido + "\n" + COLOR_RESET;
+        }
+        else if (tipo == "AYUDA")
+        {
+            mensaje = COLOR_CYAN + "[" + tipo + "] " + contenido + COLOR_RESET;
+        }
+        else
+        {
+            mensaje = color + contenido + COLOR_RESET;
+        }
+
+        return mensaje;
+    }
+
     void procesarMensaje(const string &remitente, const string &mensaje, int socket)
     {
         if (mensaje.empty())
@@ -301,9 +360,75 @@ public:
         // Comandos especiales
         if (mensaje[0] == '/')
         {
-            if (mensaje == "/listar")
+            // Validación para el comando /msg
+            if (mensaje.substr(0, 4) == "/msg")
+            {
+                size_t espacio1 = mensaje.find(' ', 4);
+                if (espacio1 == string::npos)
+                {
+                    string error = formatearMensaje("ERROR", "Formato incorrecto. Use: /msg usuario mensaje");
+                    send(socket, error.c_str(), error.size(), 0);
+                    return;
+                }
+
+                size_t espacio2 = mensaje.find(' ', espacio1 + 1);
+                if (espacio2 == string::npos)
+                {
+                    string error = formatearMensaje("ERROR", "Formato incorrecto. Use: /msg usuario mensaje");
+                    send(socket, error.c_str(), error.size(), 0);
+                    return;
+                }
+
+                string destinatario = mensaje.substr(espacio1 + 1, espacio2 - espacio1 - 1);
+                string contenido = mensaje.substr(espacio2 + 1);
+
+                if (contenido.empty())
+                {
+                    string error = formatearMensaje("ERROR", "El mensaje no puede estar vacío");
+                    send(socket, error.c_str(), error.size(), 0);
+                    return;
+                }
+
+                enviarMensajePrivado(remitente, destinatario, contenido);
+                string confirmacion = formatearMensaje("ENVIADO", "Mensaje privado enviado a " + destinatario);
+                send(socket, confirmacion.c_str(), confirmacion.size(), 0);
+                return;
+            }
+            else if (mensaje.substr(0, 10) == "/broadcast")
+            {
+                if (mensaje.length() <= 11)
+                {
+                    string error = formatearMensaje("ERROR", "Mensaje vacío. Use: /broadcast mensaje");
+                    send(socket, error.c_str(), error.size(), 0);
+                    return;
+                }
+
+                string contenido = mensaje.substr(11); // "/broadcast ".length() = 11
+
+                // Mensaje broadcast (a todos los usuarios)
+                string mensajeBroadcast = formatearMensaje("", "[" + remitente + " a TODOS]: " + contenido + "\n", COLOR_AZUL);
+
+                // Mostrar el mensaje en el servidor
+                cout << COLOR_AZUL << "[BROADCAST] " << remitente << ": " << contenido << COLOR_RESET << endl;
+
+                for (auto &par : memoria->usuarios)
+                {
+                    if (par.first != remitente)
+                    {
+                        send(par.second.socketUsuario, mensajeBroadcast.c_str(), mensajeBroadcast.size(), 0);
+                    }
+                }
+
+                string confirmacion = formatearMensaje("ENVIADO", "Mensaje global enviado");
+                send(socket, confirmacion.c_str(), confirmacion.size(), 0);
+                return;
+            }
+            else if (mensaje == "/listar")
             {
                 listarUsuarios(socket);
+                // Enviar prompt inmediatamente
+                string prompt = formatearMensaje("", "> ", COLOR_AZUL);
+                send(socket, prompt.c_str(), prompt.size(), 0);
                 return;
             }
             else if (mensaje == "/salir")
@@ -311,37 +436,33 @@ public:
                 manejarDesconexion(socket);
                 return;
             }
-            else if (mensaje.substr(0, 4) == "/msg")
+            else if (mensaje == "/ayuda")
             {
-                size_t espacio1 = mensaje.find(' ', 4);
-                if (espacio1 == string::npos)
-                {
-                    string error = "Formato incorrecto. Use: /msg usuario mensaje\n";
-                    send(socket, error.c_str(), error.size(), 0);
-                    return;
-                }
-                size_t espacio2 = mensaje.find(' ', espacio1 + 1);
-                if (espacio2 == string::npos)
-                {
-                    espacio2 = mensaje.length();
-                }
-
-                string destinatario = mensaje.substr(espacio1 + 1, espacio2 - espacio1 - 1);
-                string contenido = mensaje.substr(espacio2 + 1);
-
-                enviarMensajePrivado(remitente, destinatario, contenido);
+                string ayuda = formatearMensaje("AYUDA",
+                                                "\nComandos disponibles:\n" +
+                                                    COLOR_COMANDO + "/broadcast <mensaje>" + COLOR_RESET + " - Enviar mensaje a todos los usuarios\n" +
+                                                    COLOR_COMANDO + "/listar" + COLOR_RESET + " - Ver usuarios conectados\n" +
+                                                    COLOR_COMANDO + "/msg <usuario> <mensaje>" + COLOR_RESET + " - Enviar mensaje privado\n" +
+                                                    COLOR_COMANDO + "/ayuda" + COLOR_RESET + " - Mostrar esta ayuda\n" +
+                                                    COLOR_COMANDO + "/salir" + COLOR_RESET + " - Desconectarse\n" +
+                                                    "\n");
+                send(socket, ayuda.c_str(), ayuda.size(), 0);
+                return;
+            }
+            else
+            {
+                // Comando no reconocido
+                string error = formatearMensaje("ERROR", "Comando no reconocido. Use /ayuda para ver los comandos disponibles.");
+                send(socket, error.c_str(), error.size(), 0);
                 return;
             }
         }
-
-        // Mensaje broadcast (a todos los usuarios)
-        string mensajeBroadcast = string(BLUE) + "[" + remitente + " a TODOS]: " + mensaje + RESET + "\n";
-        for (auto &par : memoria->usuarios)
+        else
         {
-            if (par.first != remitente)
-            {
-                send(par.second.socketUsuario, mensajeBroadcast.c_str(), mensajeBroadcast.size(), 0);
-            }
+            // No es un comando - indicar que debe usar /broadcast
+            string error = formatearMensaje("ERROR", "Para enviar un mensaje global use: /broadcast mensaje");
+            send(socket, error.c_str(), error.size(), 0);
+            return;
         }
     }
 
@@ -350,32 +471,33 @@ public:
         auto it = memoria->usuarios.find(destinatario);
         if (it != memoria->usuarios.end())
         {
-            string mensajeFinal = string(GREEN) + "📨 [" + remitente + "]: " + contenido + RESET + "\n";
+            string mensajeFinal = COLOR_VERDE + "[MP de " + remitente + "]: " + contenido + COLOR_RESET + "\n";
             send(it->second.socketUsuario, mensajeFinal.c_str(), mensajeFinal.size(), 0);
-            cout << BLUE << "📨 Mensaje privado de " << remitente << " a " << destinatario << RESET << "\n";
+            cout << COLOR_AZUL << "[MP] Mensaje privado de " << remitente << " a " << destinatario << COLOR_RESET << "\n";
         }
         else
         {
             // Guardar mensaje pendiente si el usuario no está conectado
             memoria->mensajesPendientes.push({destinatario, "[" + remitente + "]: " + contenido});
-            string notificacion = "Usuario " + destinatario + " no está conectado. El mensaje se entregará cuando se conecte.\n";
+            string notificacion = COLOR_AMARILLO + "[AVISO] Usuario " + destinatario + " no está conectado. El mensaje se entregará cuando se conecte.\n" + COLOR_RESET;
             auto remit = memoria->usuarios.find(remitente);
             if (remit != memoria->usuarios.end())
             {
                 send(remit->second.socketUsuario, notificacion.c_str(), notificacion.size(), 0);
             }
-            cout << YELLOW << "⚠ Mensaje pendiente para " << destinatario << " de " << remitente << RESET << endl;
+            cout << COLOR_AMARILLO << "[AVISO] Mensaje pendiente para " << destinatario << " de " << remitente << COLOR_RESET << endl;
         }
     }
 
     void listarUsuarios(int socket)
     {
-        string lista = "\nUsuarios conectados (" + to_string(memoria->usuarios.size()) + "):\n";
+        string lista = COLOR_AMARILLO + "Usuarios conectados (" + to_string(memoria->usuarios.size()) + "):\n" + COLOR_RESET;
+
         for (auto &par : memoria->usuarios)
         {
-            lista += "• " + par.first + " (" + par.second.ip + ")\n";
+            lista += "   - " + par.first + " (" + par.second.ip + ")\n";
         }
-        lista += "\n";
+
         send(socket, lista.c_str(), lista.size(), 0);
     }
 
@@ -398,12 +520,12 @@ public:
 
         if (!usuarioDesconectado.empty())
         {
-            cerr << RED << "❌ Usuario desconectado: " << usuarioDesconectado
-                 << " (Socket FD: " << socket << ")" << RESET << "\n";
+            cerr << COLOR_ROJO << "[DESCONEXIÓN] Usuario desconectado: " << usuarioDesconectado
+                 << " (Socket FD: " << socket << ")" << COLOR_RESET << "\n";
         }
         else
         {
-            cerr << RED << "❌ Socket desconectado: " << socket << RESET << "\n";
+            cerr << COLOR_ROJO << "[DESCONEXIÓN] Socket desconectado: " << socket << COLOR_RESET << "\n";
         }
 
         close(socket);
@@ -417,7 +539,7 @@ public:
         {
             if (difftime(ahora, it->second.ultimaConexion) > 300)
             { // 5 minutos de inactividad
-                cerr << YELLOW << "⚠ Limpiando usuario inactivo: " << it->first << RESET << "\n";
+                cerr << COLOR_AMARILLO << "[AVISO] Limpiando usuario inactivo: " << it->first << COLOR_RESET << "\n";
                 close(it->second.socketUsuario);
                 FD_CLR(it->second.socketUsuario, &conjuntoSockets);
                 it = memoria->usuarios.erase(it);

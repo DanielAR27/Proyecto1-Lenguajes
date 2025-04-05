@@ -18,18 +18,17 @@ int main()
 
     try
     {
-        cout << "🔹 Iniciando servidor de mensajería..." << endl;
+        mostrar_ascii_servidor();
+        cout << COLOR_GRIS << "[INFO] Iniciando servidor de mensajería..." << COLOR_RESET << endl;
         Servidor servidor("config.txt");
 
-        cout << "🔄 Esperando conexiones de clientes..." << endl;
-        cout << "📌 Presiona Ctrl+C para detener el servidor\n"
-             << endl;
+        cout << COLOR_GRIS << "[INFO] Esperando conexiones de clientes..." << COLOR_RESET << endl;
 
         servidor.manejarConexiones();
     }
     catch (const exception &e)
     {
-        cerr << RED << "❌ Error crítico: " << e.what() << RESET << endl;
+        cerr << COLOR_ROJO << "[ERROR CRÍTICO] " << e.what() << COLOR_RESET << endl;
         return 1;
     }
 
