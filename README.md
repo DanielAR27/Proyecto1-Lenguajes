@@ -69,7 +69,7 @@ Este proyecto consiste en un sistema de mensajería cliente-servidor desarrollad
 2. **Compilar el proyecto:**
 
    ```bash
-   g++ servidor.cpp -o servidor -lpthread
+   g++ servidor_mensajeria.cpp -o servidor -lpthread
    g++ cliente.cpp -o cliente
    ```
 

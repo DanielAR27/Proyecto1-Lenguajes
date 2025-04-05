@@ -10,6 +10,7 @@
 #include <csignal>
 #include <vector>
 #include <algorithm>
+#include "../../../../../usr/include/x86_64-linux-gnu/sys/wait.h"
 
 using namespace std;
 
