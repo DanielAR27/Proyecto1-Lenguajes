@@ -3,7 +3,7 @@
 ## Portada
 
 **Proyecto 1: Sistema de Mensajería**  
-**Curso: Lenguajes de programación** 
+**Curso: Lenguajes de programación**  
 **Paradigma Imperativo**  
 **Integrantes:**
 
