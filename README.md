@@ -3,7 +3,8 @@
 ## Portada
 
 **Proyecto 1: Sistema de Mensajería**  
-**Curso: Paradigma Imperativo**  
+**Curso: Lenguajes de programación**
+**Paradigma Imperativo**  
 **Integrantes:**
 
 - Daniel Alemán
@@ -156,16 +157,3 @@ Este proyecto consiste en un sistema de mensajería cliente-servidor desarrollad
 4. **Limpieza:**
    - El servidor elimina usuarios inactivos después de 5 minutos.
 
----
-
-## Evaluación
-
-| Aspecto               | Porcentaje | Cumplimiento |
-| --------------------- | ---------- | ------------ |
-| Documentación         | 5%         | ✅           |
-| Registro de Usuarios  | 15%        | ✅           |
-| Envío de Mensajes     | 25%        | ✅           |
-| Recepción de Mensajes | 25%        | ✅           |
-| Uso de `fork()`       | 10%        | ✅           |
-| Desempeño en Revisión | 10%        | ✅           |
-| Autoevaluación        | 10%        | ✅           |
