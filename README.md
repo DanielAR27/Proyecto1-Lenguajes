@@ -22,7 +22,6 @@
 5. [Manual de Usuario](#manual-de-usuario)
 6. [Arquitectura Lógica](#arquitectura-lógica)
 7. [Funcionamiento](#funcionamiento)
-8. [Evaluación](#evaluación)
 
 ---
 
