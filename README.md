@@ -27,7 +27,7 @@
 
 ## Enlace de GitHub
 
-[Repositorio del Proyecto](https://github.com/[usuario]/[repositorio])
+[Repositorio del Proyecto](https://github.com/DanielAR27/Proyecto1-Lenguajes)
 
 ---
 
@@ -62,8 +62,8 @@ Este proyecto consiste en un sistema de mensajería cliente-servidor desarrollad
 1. **Clonar el repositorio:**
 
    ```bash
-   git clone https://github.com/[usuario]/[repositorio].git
-   cd [repositorio]
+   git clone https://github.com/DanielAR27/Proyecto1-Lenguajes.git
+   cd  Proyecto1-Lenguajes
    ```
 
 2. **Compilar el proyecto:**
